@@ -52,6 +52,33 @@ async function run() {
         })
 
         // applications api
+        app.get('/applications', async (req, res) => {
+            const result = await applicationsCollection.find().toArray();
+            res.send(result);
+        });
+
+        // query applications by job email
+        app.get('/application', async (req, res) => {
+            const email = req.query.email;
+            // console.log(email);
+            const query = { applicant: email };
+            const result = await applicationsCollection.find(query).toArray();
+
+            // bqd way to agregate the results
+            for (const application of result) {
+                const jobId = application.jobId;
+                const jobQuery = { _id: new ObjectId(jobId) }
+                const job = await jobsCollection.findOne(jobQuery);
+                // console.log(job);
+                application.company = job.company;
+                application.jobTitle = job.title;
+                application.company_logo = job.company_logo;
+                application.jobsCollection = job.location
+            }
+            res.send(result);
+        })
+
+        // applications api
         app.post('/applications', async (req, res) => {
             const application = req.body;
             const result = await applicationsCollection.insertOne(application)
