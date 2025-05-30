@@ -14,8 +14,7 @@ app.get('/', (req, res) => {
     res.send('Career Code API is running successfully!')
 })
 
-// pass: 8bXxuSVCEFiJKgUy 8bXxuSVCEFiJKgUy
-// user: careerCode
+
 
 
 
@@ -90,6 +89,31 @@ async function run() {
                 application.jobsCollection = job.location
             }
             res.send(result);
+        })
+
+        // get single applications
+        app.get('/applications/job/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const query = { jobId: id };
+            const result = await applicationsCollection.find(query).toArray()
+            res.send(result)
+            // console.log(id);
+        })
+
+
+        // patch the data form  single applications
+        app.patch('/applications/:id', async (req, res) => {
+            const id = req.params.id;
+            // const updated = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    status: req.body.status
+                }
+            }
+            const result = await applicationsCollection.updateOne(filter, updatedDoc);
+            res.send(result)
         })
 
         // applications api
