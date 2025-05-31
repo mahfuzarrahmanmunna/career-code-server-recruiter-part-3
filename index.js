@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 var jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser')
 const app = express();
 const port = process.env.PORT || 3000;
 require('dotenv').config()
@@ -8,8 +9,12 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 
-app.use(cors())
+
 app.use(express.json());
+app.use(cors({
+    origin: ['http://localhost:5173'],
+    credentials: true
+}))
 
 app.get('/', (req, res) => {
     res.send('Career Code API is running successfully!')
@@ -39,11 +44,19 @@ async function run() {
         const applicationsCollection = client.db('careerCode').collection('applications');
 
         // JWT related API
+        // app.post('/jwt', async (req, res) => {
+        //     const { email } = req.body;
+        //     const user = { email }
+        //     const token = jwt.sign(user, process.env.JWT_ACCESS_SECRET, { expiresIn: '1h' });
+        //     res.send({ token })
+        // })
+
+        // JWT related api
         app.post('/jwt', async (req, res) => {
-            const { email } = req.body;
-            const user = { email }
-            const token = jwt.sign(user, 'secret', { expiresIn: '1h' });
-            res.send({ token })
+            const userData = req.body;
+            const token = jwt.sign(userData, process.env.JWT_ACCESS_SECRET, { expiresIn: '1d' })
+
+            res.send({ success: true })
         })
 
 
