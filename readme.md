@@ -12,5 +12,5 @@
 
 
 ## SET THE COOKIES
-* set the withCredentials in the client side (where i am sign-in or sign-up) and this value always be true
-* 
+- set the withCredentials in the client side (where i am sign-in or sign-up) and this value always be true
++ set the value
