@@ -9,12 +9,36 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 
-
+// Middleware here
 app.use(express.json());
 app.use(cors({
     origin: ['http://localhost:5173'],
     credentials: true
 }))
+app.use(cookieParser())
+
+// created middleware
+// logger middleware
+const logger = (req, res, next) => {
+    console.log('inside the logger middleware');
+    next()
+}
+
+// verified token
+const verifiedToken = (req, res, next) => {
+    const token = req?.cookies?.token;
+    if (!token) {
+        return res.status(401).send({ message: "unauthorized access..!" })
+    }
+    jwt.verify(token, process.env.JWT_ACCESS_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ message: 'unauthorized access...!' })
+        }
+        req.decoded = decoded;
+        next()
+    })
+}
+
 
 app.get('/', (req, res) => {
     res.send('Career Code API is running successfully!')
@@ -51,6 +75,16 @@ async function run() {
         //     res.send({ token })
         // })
 
+        // app.post('/jwt', async (req, res) => {
+        //     const userEmail = req.body;
+        //     const token = jwt.sign(userEmail, process.env.JWT_ACCESS_SECRET, { expiresIn: '2h' });
+        //     res.cookie('token', token, {
+        //         httpOnly: true,
+        //         secure: false
+        //     })
+        //     res.send({ success: true })
+        // })
+
         // JWT related api
         app.post('/jwt', async (req, res) => {
             const userData = req.body;
@@ -84,7 +118,7 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/jobs/applications', async (req, res) => {
+        app.get('/jobs/applications',verifiedToken, async (req, res) => {
             const email = req.query.email;
             const query = { hr_email: email };
             const jobs = await jobsCollection.find(query).toArray();
@@ -108,19 +142,23 @@ async function run() {
 
 
         // applications api
-        app.get('/applications', async (req, res) => {
+        app.get('/applications ', async (req, res) => {
             const result = await applicationsCollection.find().toArray();
             res.send(result);
         });
 
         // query applications by job email
-        app.get('/application', async (req, res) => {
+        app.get('/application', logger, async (req, res) => {
             const email = req.query.email;
-            // console.log(email);
+            // console.log('inside applications', req.cookies);
+
+            // if (email !== req.decoded.email) {
+            //     return res.status(403).send({ message: 'forbidden access!' })
+            // }
             const query = { applicant: email };
             const result = await applicationsCollection.find(query).toArray();
 
-            // bqd way to agregate the results
+            // bqd way to aggregate the results
             for (const application of result) {
                 const jobId = application.jobId;
                 const jobQuery = { _id: new ObjectId(jobId) }
