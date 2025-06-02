@@ -61,7 +61,8 @@ res.cookie('token', token, {
 ```javascript
 fetch('',{
   headers: {
-    authorization : `Bearer ${t}`
+    authorization : `Bearer ${token}`
   }
 })
 ```
+3. set a middleware to verify the token

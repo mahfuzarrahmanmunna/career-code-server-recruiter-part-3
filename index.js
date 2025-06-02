@@ -17,7 +17,7 @@ app.use(cors({
 }))
 app.use(cookieParser())
 
-// created middleware
+// Customs middleware
 // logger middleware
 const logger = (req, res, next) => {
     console.log('inside the logger middleware');
@@ -27,6 +27,7 @@ const logger = (req, res, next) => {
 // verified token
 const verifiedToken = (req, res, next) => {
     const token = req?.cookies?.token;
+    console.log(token);
     if (!token) {
         return res.status(401).send({ message: "unauthorized access..!" })
     }
@@ -37,6 +38,27 @@ const verifiedToken = (req, res, next) => {
         req.decoded = decoded;
         next()
     })
+}
+
+var admin = require("firebase-admin");
+
+var serviceAccount = require("path/to/serviceAccountKey.json");
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
+
+
+// verified firebase token
+const verifiedFirebaseToken = async (req, res, next) => {
+    const authHeaders = req.headers?.authorization;
+    if (!authHeaders || !authHeaders.startsWith('Bearer ')) {
+        return res.status(401).send({ message: 'unauthorized access is' })
+    }
+    const token = authHeaders.split(' ')[1]
+    console.log('token in the middleware', token);
+
+    next()
 }
 
 
@@ -118,7 +140,7 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/jobs/applications',verifiedToken, async (req, res) => {
+        app.get('/jobs/applications', verifiedToken, async (req, res) => {
             const email = req.query.email;
             const query = { hr_email: email };
             const jobs = await jobsCollection.find(query).toArray();
@@ -148,9 +170,9 @@ async function run() {
         });
 
         // query applications by job email
-        app.get('/application', logger, async (req, res) => {
+        app.get('/application', logger, verifiedFirebaseToken, async (req, res) => {
             const email = req.query.email;
-            // console.log('inside applications', req.cookies);
+            // console.log('Request Headers', req.headers);
 
             // if (email !== req.decoded.email) {
             //     return res.status(403).send({ message: 'forbidden access!' })
