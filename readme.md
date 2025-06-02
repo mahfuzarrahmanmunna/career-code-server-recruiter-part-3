@@ -56,3 +56,12 @@ res.cookie('token', token, {
 
 
 # JWT Using Firebase
+1. After user login, firebase is giving us accessToken.
+2. 
+```javascript
+fetch('',{
+  headers: {
+    authorization : `Bearer ${t}`
+  }
+})
+```
