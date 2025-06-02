@@ -53,3 +53,6 @@ res.cookie('token', token, {
 5. In the client side : if using axios withCredentials : true for fetch : credentials include
 6. checked token exists. if not, return 401 --> unauthorized
 7. jwt.verify function
+
+
+# JWT Using Firebase
